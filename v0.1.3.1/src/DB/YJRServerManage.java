@@ -8,14 +8,14 @@ import DB.YJRClientManage;
 import java.util.Scanner;
 import java.util.Vector;
 public class YJRServerManage implements Runnable{
-	//´ú±íÏß³Ì
+	//ä»£è¡¨çº¿ç¨‹
 	private Thread t;
-	//·ÅÈë¿Í»§¶Ë¹ÜÀí
+	//æ”¾å…¥å®¢æˆ·ç«¯ç®¡ç†
 	private YJRClientManage cm;
 
  
 	
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	YJRServerManage(YJRClientManage cm){
 		this.cm = cm;
 	}
@@ -24,21 +24,27 @@ public class YJRServerManage implements Runnable{
 		Scanner sn = new Scanner(System.in);
 		String line = new String();
 
-		//ËÀÑ­»·¼àÌı ÔÚ¿ØÖÆÌ¨ÌıÃüÁî Èç¹ûÌıµ½ÏàÓ¦µÄÃüÁî  ±ã¸ù¾İ²»Í¬ÃüÁî½øĞĞ²»Í¬²Ù×÷
+		//æ­»å¾ªç¯ç›‘å¬ åœ¨æ§åˆ¶å°å¬å‘½ä»¤ å¦‚æœå¬åˆ°ç›¸åº”çš„å‘½ä»¤  ä¾¿æ ¹æ®ä¸åŒå‘½ä»¤è¿›è¡Œä¸åŒæ“ä½œ
 		while(true) {
 			if(sn.hasNextLine()) {
 				line = sn.nextLine();
 				if(line.equals("shutdown")) {}
 				else if(line.equals("showclientnum")) {
-					System.out.println(cm.GetvSocketsize());
+					System.out.println(cm.GetvSocket().size());
 				}
-				if(line.equals("showallclientinfo")) {}
+				if(line.equals("showallclientinfo")) {
+					Vector temp = cm.GetvSocket();
+					for(int i = temp.size()-1;i>=0;i--) {
+						Socket so = (Socket)temp.elementAt(i);
+						System.out.println(so);
+					}
+				}
 			}
 		}
 	}
-	//´´½¨Ò»¸öĞÂÏß³Ì
+	//åˆ›å»ºä¸€ä¸ªæ–°çº¿ç¨‹
 	public void start() {
-		System.out.println("YJRDB·şÎñÆ÷¹ÜÀíÏß³Ì¿ªÆô");
+		System.out.println("YJRDBæœåŠ¡å™¨ç®¡ç†çº¿ç¨‹å¼€å¯");
 		if(t == null) {
 			t = new Thread(this);
 			t.start();
