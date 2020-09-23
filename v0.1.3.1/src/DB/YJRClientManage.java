@@ -3,59 +3,59 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
 public class YJRClientManage implements Runnable{
-	//´ú±íÏß³Ì
+	//ä»£è¡¨çº¿ç¨‹
 	private Thread t;
-	//ÓÃËÀÑ­»· ÈÃÏß³Ì¶¨Ê±Ö´ĞĞÈÎÎñ
-	//ÓÃÓÚ±£´æÃ¿¸ö¿Í»§¶ËÁ¬½Ó
+	//ç”¨æ­»å¾ªç¯ è®©çº¿ç¨‹å®šæ—¶æ‰§è¡Œä»»åŠ¡
+	//ç”¨äºä¿å­˜æ¯ä¸ªå®¢æˆ·ç«¯è¿æ¥
 	private Vector vSocket;
-	//ÓÃÓÚ±£´æÃ¿¸ö¿Í»§¶Ë·¢ËÍ¹ıÀ´µÄÏûÏ¢
+	//ç”¨äºä¿å­˜æ¯ä¸ªå®¢æˆ·ç«¯å‘é€è¿‡æ¥çš„æ¶ˆæ¯
 	private Vector vMessage;
 
 	
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	YJRClientManage(){
 		vSocket = new Vector();
 		vMessage = new Vector();
 	}
 	
-	//Ìí¼Ó¿Í»§¶ËsocketÁ¬½Ó
+	//æ·»åŠ å®¢æˆ·ç«¯socketè¿æ¥
 	public void addSocket(Object o) {
 		vSocket.addElement(o);
 	}
 	
-	//Ìí¼Ó¿Í»§¶Ë·¢ËÍµÄĞÅÏ¢
+	//æ·»åŠ å®¢æˆ·ç«¯å‘é€çš„ä¿¡æ¯
 	public void addMessage(String str) {
 		vMessage.addElement(str);
 	}
 	
-	public int GetvSocketsize(){
-		return vSocket.size();
+	public Vector GetvSocket(){
+		return vSocket;
 	}
 	
-	//Èº·¢vMessageÖĞµÄĞÅÏ¢
+	//ç¾¤å‘vMessageä¸­çš„ä¿¡æ¯
 	public void ClientSend() throws IOException {
-		//Ê×ÏÈ´òÓ¡vMessageÀïµÄĞÅÏ¢ ²¢ÇÒ°Ñ´òÓ¡µÄĞÅÏ¢Çå³ı³övMessage
-		//°ÑÃ¿Ò»¸övMessageÊä³öµ½Ã¿Ò»¸övSocket ËùÒÔÊÇvMessageÔÚÍâ²ã vSocketÔÚÄÚ²ã
+		//é¦–å…ˆæ‰“å°vMessageé‡Œçš„ä¿¡æ¯ å¹¶ä¸”æŠŠæ‰“å°çš„ä¿¡æ¯æ¸…é™¤å‡ºvMessage
+		//æŠŠæ¯ä¸€ä¸ªvMessageè¾“å‡ºåˆ°æ¯ä¸€ä¸ªvSocket æ‰€ä»¥æ˜¯vMessageåœ¨å¤–å±‚ vSocketåœ¨å†…å±‚
 		for(int i = 0;i<vMessage.size();i++) {
 			for(int j = 0;j<vSocket.size();j++) {
 				Socket temp = (Socket)vSocket.get(j);
-				//»ñÈ¡Õâ¸ösocketÁ¬½Ó·¢ËÍµÄĞÅÏ¢
+				//è·å–è¿™ä¸ªsocketè¿æ¥å‘é€çš„ä¿¡æ¯
 				PrintWriter writer = new PrintWriter(temp.getOutputStream(), true);
 				writer.println(vMessage.get(i));
 				writer.flush();
 			}
 		}
-		//´òÓ¡Íêºó É¾³ıËùÓĞĞÅÏ¢
+		//æ‰“å°å®Œå åˆ é™¤æ‰€æœ‰ä¿¡æ¯
 		vMessage.removeAllElements();
 	}
 	
-	//¶ÔÃ¿¸ösocket¿Í»§¶ËÁ¬½Ó½øĞĞ¼ì²â
+	//å¯¹æ¯ä¸ªsocketå®¢æˆ·ç«¯è¿æ¥è¿›è¡Œæ£€æµ‹
 	public void LinkTest() {
-		//¶ÔVsocket½øĞĞ±éÀú
+		//å¯¹Vsocketè¿›è¡Œéå†
 		for(int i = vSocket.size()-1; i>=0 ; i--) {
-			//»ñÈ¡ÆäÖĞ±£´æµÄÒ»¸ösocket
+			//è·å–å…¶ä¸­ä¿å­˜çš„ä¸€ä¸ªsocket
 			Socket temp = (Socket)vSocket.get(i);
-			//Èç¹û¹ØÁË¾ÍÒÆ³ı
+			//å¦‚æœå…³äº†å°±ç§»é™¤
 		if(temp.isClosed()) {
 			vSocket.remove(i);
 		}
@@ -67,21 +67,21 @@ public class YJRClientManage implements Runnable{
 		
 	public void run() {
 		try {
-			//ÓÃËÀÑ­»· ÈÃÏß³Ì¶¨Ê±Ö´ĞĞÈÎÎñ
+			//ç”¨æ­»å¾ªç¯ è®©çº¿ç¨‹å®šæ—¶æ‰§è¡Œä»»åŠ¡
 			while(true) {
-				//ÏÈ¼ì²âÏß³ÌÁ¬½Ó
+				//å…ˆæ£€æµ‹çº¿ç¨‹è¿æ¥
 				this.LinkTest();
-				//ÔÙÈº·¢ĞÅÏ¢
+				//å†ç¾¤å‘ä¿¡æ¯
 				this.ClientSend();
-				//Ïß³Ì³ÁË¯200ºÁÃë
+				//çº¿ç¨‹æ²‰ç¡200æ¯«ç§’
 				Thread.sleep(200);
 				}
 			}catch(Exception e) {}
 		}
 	
-	//´´½¨Ò»¸öĞÂÏß³Ì
+	//åˆ›å»ºä¸€ä¸ªæ–°çº¿ç¨‹
 	public void start() {
-		System.out.println("YJRDB¿Í»§¶Ë¹ÜÀíÏß³Ì¿ªÆô");
+		System.out.println("YJRDBå®¢æˆ·ç«¯ç®¡ç†çº¿ç¨‹å¼€å¯");
 		if(t == null) {
 			t = new Thread(this);
 			t.start();
