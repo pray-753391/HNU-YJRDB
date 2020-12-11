@@ -1,0 +1,1 @@
+alter表的drop列功能
