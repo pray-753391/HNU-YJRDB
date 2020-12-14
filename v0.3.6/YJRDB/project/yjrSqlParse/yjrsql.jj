@@ -1,0 +1,493 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+//options
+//{
+//  static = false;
+//}
+
+
+
+PARSER_BEGIN(yjrsql)
+package yjrSqlParse;
+import java.util.Vector;
+import staticContent.*;
+import YJRdataBase.*;
+
+public class yjrsql
+{
+  public static void main(String args []) throws ParseException
+  {
+    yjrsql parser = new yjrsql(System.in);
+    int j=0;
+    //表达式与列定义
+    Expression exp=new Expression();
+    ColumnDef coldef=new ColumnDef();
+    //表约束和表内容
+    //TableConstraint tc=new TableConstraint();
+    //TableContent tContent=new TableContent();
+    //DropAndAlter dt = new DropAndAlter();
+    AddDeleteInsertSelect dt = new AddDeleteInsertSelect();
+    try
+    {
+    	//parser.expression(exp);
+    	//新建一个列定义
+    	//coldef=parser.GetColumnDef();
+
+    	//tc=parser.GetTableConstraint();
+    	//tContent=parser.GetTableContent();
+    	//dt = parser.GetDropAlterTable();
+    	dt = parser.GetSelect();
+    	j=1;
+    }
+    catch (Exception e)
+      {
+//        System.out.println(e.getMessage());
+      }
+
+	 if(0==j){
+		System.out.println("匹配失败!");
+ 	 }
+ 	 else
+ 	 {
+ 	 System.out.println("匹配成功!\n");
+
+ 	 //System.out.println("匹配成功!\n"+(String)((Vector)dt.exeSQL()).get(1));
+ 	  	//System.out.println("匹配成功!\n"+tContent.getDescribe());
+      	//System.out.println("匹配成功!\n"+tc.getDescribe());
+ 	    //输出这个列定义的值
+ 	    //System.out.println("匹配成功!\n"+coldef.getDescribe());
+		//System.out.println("匹配成功!表达式的大小为："+exp.getElements().size());
+		try
+		{
+		 dt.executeSQL();
+        //System.out.println(StaticMethod.calExpression(exp.getElements()).getString());
+		//System.out.println((String)((Vector)tContent.executeSQL()).get(1));
+		//for(int i=0;i<v.size();i++)
+		   //System.out.println(v.get(i).toString());
+		}
+		catch (Exception e)
+      	{
+        	System.out.println(e.getMessage());
+      	}
+ 	 }
+  }
+}
+
+PARSER_END(yjrsql)
+
+SKIP :	{  " "| "\r"| "\t"| "\n"}
+
+//数据类型
+TOKEN : { < INT:"int" >|< FLOAT:"float" >|< STRING:"string" >|< BOOL:"bool" >|<BLOD:"blob">}
+
+//约束
+TOKEN : { < UNIQUE:"unique" >|< NOTNULL :"not null">|< PRIMARYKEY :"primary key">
+          |< SQLDEFAULT:"sqldefault">|< CHECK:"check" >|< CONSTRAINT:	"constraint" >
+          |< FOREIGNKEY:"foreign key" >|< REFERENCES:"references" >|< NOACTION:"no action" >
+          |< RESTRICT:"restrict" >|< SETNULL:"set null" >|< CASCADE:"cascade" >|< ON:"on" >}
+//数据库内的关键字
+TOKEN : { < DELETE:"delete" >|< UPDATE:"update" >|< INSERT:"insert" >|< CREATE:"create" >
+		  |< TABLE:"table" >|< WHERE:"where" >|< INTO:"into" >|< VALUES:"values" >|< SET:"set" >
+		  | < FROM:"from" >|< DROP:"drop">|<SELECT:"select">|<ALTER:"alter">|<ADDCOLUMN:"add">}
+
+TOKEN : {   < IDENTIFIER :								//标识符
+                (< LETTER > | <DIGIT> )*
+                						 >
+            |< ICONSTANT : (< DIGIT >)+ >						 //整数
+			| < FCONSTANT : (< DIGIT >)+ "." (< DIGIT >)* >		 //小数
+			| < SCONSTANT : "'" ([ "a"-"z", "\\", "%", "_" ])* "'" >	//字符串
+			| < #LETTER : [ "a"-"z", "A"-"Z", "_","*"] >| < #DIGIT : [ "0"-"9" ] >
+			| < EOL :";" >}
+//算术运算 逻辑运算
+TOKEN : {  < ADD : "+" >| < MINUS : "-" >| < MULTIPLY : "*" >| < DIVIDE : "/" >| < MOD : "%" >
+			| < GREAT : ">" >| < LESS : "<" >| < EQUAL : "==" >| < AND : "and" >| < OR : "or" >| < NOT : "not" >}
+
+String GetNumericOperator() : //算术运算符
+{
+  Token t;
+}
+
+{
+  ( t = < ADD >| t = < MINUS >| t = < MULTIPLY >| t = < DIVIDE >| t = < MOD >)
+  {
+    return t.image;
+  }
+}
+
+String GetLogicOperator() : //逻辑运算符
+{
+  Token t;
+}
+{
+  (t = < GREAT >| t = < LESS > | t = < EQUAL >| t = < AND >| t = < OR >)
+  {
+    return t.image;
+  }
+}
+
+void GetOperand(Expression exp) :  //将操作数传入exp数组中
+{
+  Token t;
+  Operand od = new Operand();
+  Operand odm = new Operand();
+  Variable var;
+  Function f;
+}
+{
+    [ //[]代表可选表示可匹配可不匹配
+      < MINUS >
+      {
+        odm.SetINT(-1);
+        exp.addElement(odm);
+        exp.addElement(Operator.get("*"));
+      }
+    ]
+    (
+	    t = < ICONSTANT > //整数
+	    {
+	      od.SetINT(Integer.parseInt(t.image));
+	      exp.addElement(od);
+	    }
+	    |
+	    t = < FCONSTANT > //浮点数
+	    {
+	      od.SetFLOAT( Float.parseFloat(t.image));
+	      exp.addElement(od);
+	    }
+		|
+	    t = < SCONSTANT >//字符串
+	    {
+	      od.SetSTRING(t.image);
+	      exp.addElement(od);
+	    }
+	    |LOOKAHEAD(2)     t = < IDENTIFIER >
+	    {
+           var=new Variable(t.image);
+           exp.addElement(var);
+        }
+        |LOOKAHEAD(2)
+	    f = GetFunction()//函数
+    	{
+    	  exp.addElement(f);
+    	  //try{
+    	    //	exp.addElement(f.eval()); //f.eval()返回Operand
+    	   //}catch(Exception e) {
+    	    // 	e.printStackTrace();
+    	   //}
+    	}
+	)
+	|//左括右括
+	(
+	  	"(" {      exp.addElement(Operator.get("("));    }
+			subexpression(exp)
+		")"  {     exp.addElement(Operator.get(")"));    }
+	)
+}
+
+void OpPart(Expression  exp) :  //将操作符传入exp数组中
+{
+  String opstr;
+}
+{
+  (
+    opstr = GetNumericOperator()
+    {
+      exp.addElement(Operator.get(opstr));
+    }
+  | opstr = GetLogicOperator()
+    {
+      exp.addElement(Operator.get(opstr));
+    }
+  )
+  GetOperand(exp)
+}
+
+void subexpression(Expression exp) :  //次级表达式，如包含在括号中
+{
+}
+{
+  GetOperand(exp)
+  (
+    LOOKAHEAD(2)
+    OpPart(exp)
+  )*
+}
+
+void expression(Expression exp):   //表达式
+{
+}
+{
+  GetOperand(exp)
+  (
+    LOOKAHEAD(2)
+    OpPart(exp)
+  )* < EOL >
+}
+
+Expression ParsePartExpression() :
+{
+  Expression exp = new Expression();
+}
+{
+  subexpression(exp)
+  {
+    return exp;
+  }
+}
+
+Function GetFunction() :   //定义函数
+{
+  Function f;
+  Token t;
+  Expression exp;
+}
+{
+  t = < IDENTIFIER >
+  {	//将函数名称传递
+    f = Function.get(t.image);
+    f.SetName(t.image);
+  }
+  "("//函数名后跟着()
+  exp = ParsePartExpression()  //函数名中的参数
+  {
+    f.AddParam(exp);
+  }
+  (
+    "," exp = ParsePartExpression()
+    {
+      f.AddParam(exp);
+    }
+  )*
+  ")"
+  {
+    return f;
+  }
+}
+
+ColumnDef GetColumnDef():
+{
+  ColumnDef coldef=new ColumnDef();
+  Token t;
+  int i;
+  Expression exp=new Expression();
+}
+{
+  (
+    t=< IDENTIFIER >{ coldef.setColName(t.image);}
+    i=GetDataType() { coldef.setColType(i); }
+  [ < UNIQUE > { coldef.setUnique(true); }]
+  [ < NOTNULL > { coldef.setNotNull(true); }]
+  [ < PRIMARYKEY > { coldef.setPrimaryKey(true); }]
+  [ <SQLDEFAULT >exp=ParsePartExpression() { coldef.setDefaultExp(exp); }]
+  {
+    return coldef;
+  }
+  )
+}
+
+int GetDataType():
+{
+  int i=1;
+}
+{
+  (
+    < INT > {i=DataType.INT; }
+  | < FLOAT > { i=DataType.FLOAT; }
+  | < STRING > { i=DataType.STRING;}
+  | < BOOL > { i=DataType.BOOL;}
+  )
+  {
+    return i;
+  }
+}
+
+TableConstraint GetTableConstraint() :
+{
+	Token t;
+	//表达式和约束
+	Expression exp = new Expression();
+	TableConstraint tc=new TableConstraint();
+}
+{
+  (
+    [<CONSTRAINT > t=< IDENTIFIER > { tc.setTcName(t.image); }	]	//约束名
+	(
+		(   //检查约束即列值是否符合条件
+		  < CHECK > exp=ParsePartExpression()
+		  {
+		    	tc.setTcType(3);
+		    	tc.addElement(exp);
+		  }
+		)|(  //主键
+			< PRIMARYKEY >
+			"("
+			t=< IDENTIFIER >
+			{
+			  	tc.setTcType(1);
+		    	tc.addElement(t.image);
+			}
+			("," t=< IDENTIFIER > {tc.addElement(t.image); })*
+
+			")"
+		)|(  //外键
+		< FOREIGNKEY > { tc.setTcType(2);}
+			"(" t=< IDENTIFIER > ")" { tc.addElement(t.image); }
+		< REFERENCES > t=< IDENTIFIER > { tc.addElement(t.image); }//1--no action或restrict
+			"(" t=< IDENTIFIER > ")" { tc.addElement(t.image);
+			//1，1代表设置外键时更新和删除操作默认为1
+			tc.addElement(1);
+			tc.addElement(1);}
+			[  //级联删除
+			LOOKAHEAD(2) < ON ><DELETE >
+			(< NOACTION > |< RESTRICT >|< SETNULL >{ tc.setElement(3,2); } |< CASCADE >{ tc.setElement(3,3); } )
+			]
+			[  //级联更新
+			 < ON ><UPDATE >
+			(< NOACTION > |< RESTRICT >|< SETNULL >{ tc.setElement(4,2); } |< CASCADE >{ tc.setElement(4,3); } )
+			]
+		)
+	 )
+	)
+	{
+		return tc;
+	}
+}
+
+TableContent GetTableContent(): //获取定义表的内容
+{
+	ColumnDef coldef;
+  	TableConstraint tc;
+  	Token t;
+  	TableContent tContent=new TableContent();
+}
+{
+  < CREATE > <TABLE > t=< IDENTIFIER > { tContent.settName(t.image);} //表名
+  "("
+  		coldef=GetColumnDef() { tContent.getvColumn().addElement(coldef); }
+  		(
+  		  ","
+  		  (
+  		    coldef=GetColumnDef() 	{ tContent.getvColumn().addElement(coldef); }
+  			|
+  			tc=GetTableConstraint()	{ tContent.getvConstraint().addElement(tc); }
+  		  )
+  		)*
+  ")"
+  < EOL >
+  {
+		return tContent;
+}
+}
+
+DropAndAlter GetDropAlterTable(): //删除和修改数据库表
+{
+  Token t;
+  DropAndAlter dti=new DropAndAlter();
+  //删除和修改标志
+  int num;
+}
+{
+    (
+    < DROP > < TABLE > t=< IDENTIFIER > { dti.setsTablename(t.image); }
+    < EOL >
+    {
+        dti.num=1;
+        return dti;
+    }
+    )
+    |
+    (
+    <ALTER> <TABLE> t=<IDENTIFIER> {dti.setsTablename(t.image);}
+        (
+        <DROP> t=<IDENTIFIER>{dti.setcolname(t.image);}
+        )*
+        (
+        <ADDCOLUMN> t=<IDENTIFIER>{dti.setcolname(t.image);}
+            (t=<INT> {dti.setType(t.image);})
+            |
+            (t=<FLOAT> {dti.setType(t.image);})
+            |
+            (t=<STRING> {dti.setType(t.image);})
+            |
+            (t=<BOOL> {dti.setType(t.image);})
+            |
+            (t=<SET> {dti.setType(t.image);})
+            |
+            (t=<BLOD> {dti.setType(t.image);})
+        )*
+    <EOL>
+    {
+        dti.num=2;
+        return dti;
+    }
+   )
+}
+
+AddDeleteInsertSelect GetSelect():
+{
+    Token t;
+    AddDeleteInsertSelect dt = new AddDeleteInsertSelect();
+    //增删改查标志
+    int num;
+}
+{
+    (
+    <INSERT> <INTO> t=< IDENTIFIER >{dt.setsTablename(t.image);}
+    <VALUES>
+    "("
+        t=< IDENTIFIER >{dt.setValues(t.image);}
+       (
+         		  ","
+         		  (
+         		    t=< IDENTIFIER >{dt.setValues(t.image);}
+         		  )
+        )*
+     ")"
+    <EOL>
+     {
+            dt.num=1;
+            return dt;
+     }
+     )
+     |
+     (
+         <DELETE> <FROM> t=< IDENTIFIER >{dt.setsTablename(t.image);dt.setcolname("all");}
+         (
+         <WHERE> t=< IDENTIFIER >{dt.getscolname().removeAllElements();dt.setcolname(t.image);}
+         <EQUAL> t=<IDENTIFIER> {dt.setValues(t.image);}
+         )*
+    <EOL>
+     {
+         dt.num=2;
+         return dt;
+     }
+     )
+     |
+     <UPDATE> t=<IDENTIFIER>{dt.setsTablename(t.image);}
+     <SET> t=<IDENTIFIER>{dt.setcolname(t.image);}
+     <EQUAL> t=<IDENTIFIER>{dt.setValues(t.image);}
+     <WHERE> t=<IDENTIFIER>{dt.setcolname(t.image);}
+     <EQUAL> t=<IDENTIFIER>{dt.setValues(t.image);}
+     <EOL>
+     {
+        dt.num=3;
+        return dt;
+     }
+     |
+     (
+         <SELECT>  t=< IDENTIFIER >{dt.setcolname(t.image);}
+                         (
+                           		  ","
+                           		  (
+                           		    t=< IDENTIFIER >{dt.setcolname(t.image);}
+                           		  )
+                          )*
+         <FROM> t=< IDENTIFIER >{dt.setsTablename(t.image); }
+         <EOL>
+         {
+             dt.num=4;
+             return dt;
+         }
+     )
+}
